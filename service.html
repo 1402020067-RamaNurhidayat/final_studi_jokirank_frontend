@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://unpkg.com/alpinejs@3.10.2/dist/cdn.min.js"
+      defer
+    ></script>
+    <title>MamanJoki</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+      const auth = get_auth();
+      const logged_in = auth.user && auth.token;
+      if (!logged_in) {
+        alert("Please log in!");
+        window.location.href = "index.html";
+      }
+      function formDataIn() {
+        return {
+          form_data_in: {
+            payment_method: [],
+            login_method: [],
+            jenis_rank: [],
+          },
+          form_loading: true,
+          getFormData() {
+            fetch(host + "/api/form_data")
+              .then((response) => response.json())
+              .then((data) => {
+                this.form_data_in = data;
+                this.form_loading = false;
+              });
+          },
+        };
+      }
+      function formData(){
+        const params = new Proxy(new URLSearchParams(window.location.search), {
+          get: (searchParams, prop) => searchParams.get(prop),
+        });
+        // if jenis_joki_id is not set, redirect to index.html
+        if (!params.jenis_joki_id) {
+          alert("Jenis joki not found!");
+          window.location.href = "index.html";
+        }
+        return {
+          formData:{
+            jenis_rank_id: "",
+            jenis_joki_id: params.jenis_joki_id,
+            payment_method_id: "",
+            login_method_id: "",
+            email: "",
+            password: "",
+            request_hero: "",
+            phone: "",
+          },
+          //form_data_in:
+          submitForm(){
+            const auth = get_auth();
+            fetch(host + '/api/order', {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + auth.token,
+              },
+              body: JSON.stringify(this.formData),
+            })
+              .then(() => {
+                this.formData.jenis_rank_id = "";
+                this.formData.payment_method_id = "";
+                this.formData.login_method_id = "";
+                this.formData.email = "";
+                this.formData.password = "";
+                this.formData.request_hero = "";
+                this.formData.phone = "";
+                alert("Order success!");
+                // window.location.href = "order.html";
+                this.formMessage = "Form successfully submitted.";
+              })
+              .catch(() => {
+                this.formMessage = "Something went wrong.";
+                alert("Order failed!");
+              });
+          },
+        };
+      }
+    </script>
+  </head>
+  <body
+    class="bg-primary"
+    x-data="{
+  authed: logged_in,
+  loading: true,
+  no_data: false
+}"
+  >
+    <nav class="navbar navbar-expand-lg navbar-light bg-info">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="index.html">MamanJoki</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+          </ul>
+          <form class="d-flex">
+            <input
+              class="form-control me-2"
+              type="search"
+              placeholder="Search"
+              aria-label="Search"
+            />
+            <button class="btn btn-outline-success" type="submit">
+              Search
+            </button>
+          </form>
+          <button
+            x-show="!authed"
+            class="btn btn-outline-success"
+            onclick="window.location.href='login.html'"
+          >
+            Login
+          </button>
+          <!-- Logout -->
+          <button
+            x-show="authed"
+            class="btn btn-outline-success"
+            onclick="logout()"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+    <main>
+      <section class="p-3 text-center">
+        <header class="p-3">
+          <h1 class="text-center">Buat Pesanan Jokian</h1>
+        </header>
+
+        <section class="d-flex min-vh-100 w-100 p-5">
+          <aside style="max-width: 350px" class="text-start">
+            <div>
+              <img src="images/image 3.png" width="100%" alt="Website Logo" />
+              <p>
+                <span>Jasa Rank</span> -
+                <span class="text-warning">Jasa Joki</span>
+              </p>
+            </div>
+            <p class="text-warning">Open 24 Jam</p>
+            <p>Cara Order :</p>
+            <p>
+              1. Masukan E-mail dan Password (Isi Request hero Minimal 3 Hero
+              dan Catatan Untuk Penjoki)
+            </p>
+            <p>
+              2. Pilih Metode Login sesuai akun yang anda Bind/Kaitkan Melalui
+              (MOONTON/VK/FB)
+            </p>
+            <p>3. Pilih Jenis Rank Sesuai Akun Kalian</p>
+            <p>4. Masukan Jumlah Order Per Star/Per Point</p>
+            <p>5. Pilih Metode Pembayaran</p>
+            <p>6. Masukan Nomor WhatsApp Kamu</p>
+            <p>7. Klik Beli Sekarang & Lakukan Pembayaran</p>
+            <p>
+              8. Akun anda akan segera di proses setelah pembayaran berhasil/
+            </p>
+          </aside>
+          <aside
+            x-data="formDataIn()"
+            x-init="getFormData()"
+            class="flex-grow-1 d-flex flex-column gap-4 justify-content-center align-items-center p-5 text-start"
+          >
+            <form
+              x-data="formData()"
+              @submit.prevent="submitForm()"
+              method="GET"
+            >
+              <div class="card w-100 p-3">
+                <div class="card-header"><h3>1. Lengkapi Data</h3></div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="email"
+                      name="email"
+                      placeholder="Email"
+                      required
+                      x-model="formData.email"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="password"
+                      name="password"
+                      placeholder="Password"
+                      required
+                      x-model="formData.password"
+                    />
+                  </div>
+                  <!-- Textarea -->
+                  <div class="form-group">
+                    <label for="request_hero">Request Hero</label>
+                    <textarea
+                      class="form-control"
+                      id="request_hero"
+                      name="request_hero"
+                      rows="3"
+                      placeholder="Request Hero"
+                      required
+                      x-model="formData.request_hero"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <section x-show="form_loading">Loading</section>
+                    <template x-for="logmethod in form_data_in.login_method">
+                      <div>
+                        <label>
+                          <input
+                            type="radio"
+                            id="login_method_id"
+                            name="login_method_id"
+                            x-bind:value="logmethod.id"
+                            required
+                            x-model="formData.login_method_id"
+                          />
+                          <span x-text="logmethod.name"></span>
+                        </label>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card w-100 p-3">
+                <div class="card-header"><h3>2. Pilih Jenis</h3></div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <section x-show="form_loading">Loading</section>
+                    <template x-for="rank in form_data_in.jenis_rank">
+                      <div>
+                        <label>
+                          <input
+                            type="radio"
+                            id="jenis_rank_id"
+                            name="jenis_rank_id"
+                            x-bind:value="rank.id"
+                            required
+                            x-model="formData.jenis_rank_id"
+                          />
+                          <span x-text="rank.name"></span>
+                        </label>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card w-100 p-3">
+                <div class="card-header"><h3>3. Metode Pembayaran</h3></div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <section x-show="form_loading">Loading</section>
+                    <template x-for="paymethod in form_data_in.payment_method">
+                      <div>
+                        <label>
+                          <input
+                            type="radio"
+                            id="payment_method_id"
+                            name="payment_method_id"
+                            x-bind:value="paymethod.id"
+                            required
+                            x-model="formData.payment_method_id"
+                          />
+                          <span x-text="paymethod.name"></span>
+                        </label>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card w-100 p-3">
+                <div class="card-header">
+                  <h3>4. Masukan Nomor Whatsapp</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="phone"
+                      name="phone"
+                      placeholder="0812XXXXXXXX"
+                      required
+                      x-model="formData.phone"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="card w-100 p-3">
+                <div class="card-body">
+                  <!-- Button -->
+                  <button class="btn btn-success btn-block" type="submit">
+                    Beli Sekarang
+                  </button>
+                </div>
+              </div>
+            </form>
+          </aside>
+        </section>
+      </section>
+    </main>
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+  -->
+
+    <!-- Jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("#login-form").submit(function (e) {
+          e.preventDefault();
+          $.ajax({
+            url: host + "/api/login",
+            type: "POST",
+            data: $(this).serialize(),
+            success: function (response) {
+              localStorage.setItem("token", response.token);
+              // Set user to local storage
+              localStorage.setItem("user", JSON.stringify(response.user));
+              // Redirect to home page
+              window.location.href = "index.html";
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
